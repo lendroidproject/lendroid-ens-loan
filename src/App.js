@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import SimpleStorageContract from '../build/contracts/SimpleStorage.json'
+import MarketContract from '../build/contracts/Market.json'
 import getWeb3 from './utils/getWeb3'
 
 import './css/oswald.css'
@@ -13,7 +14,8 @@ class App extends Component {
 
     this.state = {
       storageValue: 0,
-      web3: null
+      web3: null,
+      dailyInterestRate: null,
     }
   }
 
@@ -47,23 +49,38 @@ class App extends Component {
     const simpleStorage = contract(SimpleStorageContract)
     simpleStorage.setProvider(this.state.web3.currentProvider)
 
+    const market = contract(MarketContract)
+    market.setProvider(this.state.web3.currentProvider)
+
     // Declaring this for later so we can chain functions on SimpleStorage.
-    var simpleStorageInstance
+    var simpleStorageInstance,
+        marketInstance;
 
     // Get accounts.
     this.state.web3.eth.getAccounts((error, accounts) => {
-      simpleStorage.deployed().then((instance) => {
-        simpleStorageInstance = instance
-
+      // simpleStorage.deployed().then((instance) => {
+      //   simpleStorageInstance = instance
+      //   // Stores a given value, 5 by default.
+      //   return simpleStorageInstance.set(5, {from: accounts[0]})
+      // }).then((result) => {
+      //   // Get the value from the contract to prove it worked.
+      //   return simpleStorageInstance.get.call(accounts[0])
+      // }).then((result) => {
+      //   // Update state with the result.
+      //   return this.setState({ storageValue: result.c[0] })
+      // });
+      console.log('accounts:');
+      console.log(accounts);
+      market.deployed().then((instance) => {
+        marketInstance = instance
+        console.log(instance);
         // Stores a given value, 5 by default.
-        return simpleStorageInstance.set(5, {from: accounts[0]})
-      }).then((result) => {
-        // Get the value from the contract to prove it worked.
-        return simpleStorageInstance.get.call(accounts[0])
+        return marketInstance.getDailyInterestRate.call(accounts[0])
       }).then((result) => {
         // Update state with the result.
-        return this.setState({ storageValue: result.c[0] })
-      })
+        console.log(result);
+        return this.setState({ dailyInterestRate: result.c[0] })
+      });
     })
   }
 
@@ -71,7 +88,7 @@ class App extends Component {
     return (
       <div className="App">
         <nav className="navbar pure-menu pure-menu-horizontal">
-            <a href="#" className="pure-menu-heading pure-menu-link">Truffle Box</a>
+            <a href="#" className="pure-menu-heading pure-menu-link">Lendroid ENS Loans</a>
         </nav>
 
         <main className="container">
@@ -83,6 +100,7 @@ class App extends Component {
               <p>If your contracts compiled and migrated successfully, below will show a stored value of 5 (by default).</p>
               <p>Try changing the value stored on <strong>line 59</strong> of App.js.</p>
               <p>The stored value is: {this.state.storageValue}</p>
+              <p>The current interest rate is: {this.state.dailyInterestRate}</p>
             </div>
           </div>
         </main>
