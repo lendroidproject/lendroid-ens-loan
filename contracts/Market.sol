@@ -155,4 +155,20 @@ contract Market {
         return dailyInterestRate;
     }
 
+    function getDefaultMaxLoanDuration(address addr) returns(uint) {
+        return defaultMaxLoanDuration;
+    }
+
+    function getGracePeriodFine(address addr) returns(uint) {
+        return gracePeriodFine;
+    }
+
+    function getDailyLGTRate(address addr) returns(uint) {
+        return dailyLGTOffered;
+    }
+
+    function getAcceptingNewLoans(address addr) returns(bool) {
+        return acceptingNewLoans;
+    }
+
 }
