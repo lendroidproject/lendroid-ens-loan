@@ -107,17 +107,20 @@ class App extends Component {
 
                       console.log(ensContract);
                       console.log(fifsRegistrarContract);
+
                       console.log(registrar.address);
-                      var testRegistrar = fifsRegistrarContract.at(registrar.address);
-                      console.log(testRegistrar);
                       console.log(_that.state.web3.sha3(_that.state.ensName1));
-                      console.log(testRegistrar.expiryTimes(_that.state.web3.sha3(_that.state.ensName1)));
+
+                      //console.log(registrar.expiryTimes(_that.state.web3.sha3(_that.state.ensName1),_that.state.userAccount));
+
+                      console.log(registrar.register(_that.state.web3.sha3('lendroid'), _that.state.web3.eth.accounts[0], {from: _that.state.web3.eth.accounts[0]}));
+
                       console.log();
                       console.log('Check that name is not owned by anybody');
-                      // // Check that name is not owned by anybody
+                      // Check that name is not owned by anybody
 
-                      var registeredDate = new Date(testRegistrar.expiryTimes(_that.state.web3.sha3(_that.state.ensName1)).toNumber() * 1000)
-                      console.log('registeredDate: ' + registeredDate);
+                      //var registeredDate = new Date(testRegistrar.expiryTimes(_that.state.web3.sha3(_that.state.ensName1)).toNumber() * 1000)
+                      //console.log('registeredDate: ' + registeredDate);
                   }
               });
           }
@@ -152,6 +155,7 @@ class App extends Component {
               <p>If your contracts compiled and migrated successfully, below will show a stored value of 5 (by default).</p>
               <p>Try changing the value stored on <strong>line 59</strong> of App.js.</p>
               <p>The current interest rate is: {this.state.dailyInterestRate}</p>
+
             </div>
           </div>
         </main>
