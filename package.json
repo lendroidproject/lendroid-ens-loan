@@ -49,10 +49,13 @@
     "whatwg-fetch": "1.0.0"
   },
   "dependencies": {
+    "bip39": "^2.3.1",
     "dotenv": "^2.0.0",
+    "ethereumjs-wallet": "^0.6.0",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
-    "web3": "^0.19.1"
+    "web3": "^0.19.1",
+    "web3-provider-engine": "^13.0.3"
   },
   "scripts": {
     "start": "node scripts/start.js",

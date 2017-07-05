@@ -151,23 +151,23 @@ contract Market {
         return bytes32(create(_cNode, _lAmount, _period));
     }
 
-    function getDailyInterestRate(address addr) returns(uint) {
+    function getDailyInterestRate() returns(uint) {
         return dailyInterestRate;
     }
 
-    function getDefaultMaxLoanDuration(address addr) returns(uint) {
+    function getDefaultMaxLoanDuration() returns(uint) {
         return defaultMaxLoanDuration;
     }
 
-    function getGracePeriodFine(address addr) returns(uint) {
+    function getGracePeriodFine() returns(uint) {
         return gracePeriodFine;
     }
 
-    function getDailyLGTRate(address addr) returns(uint) {
+    function getDailyLGTRate() returns(uint) {
         return dailyLGTOffered;
     }
 
-    function getAcceptingNewLoans(address addr) returns(bool) {
+    function getAcceptingNewLoans() returns(bool) {
         return acceptingNewLoans;
     }
 
