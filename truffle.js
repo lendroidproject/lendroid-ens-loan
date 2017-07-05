@@ -26,17 +26,22 @@ engine.start(); // Required by the provider engine.
 module.exports = {
   migrations_directory: "./migrations",
   networks: {
+    'ropsten': {
+      provider: engine,
+      from: address,
+      network_id: 3
+    },
     // development: {
     //   host: "localhost",
     //   port: 8545,
     //   network_id: "*" // Match any network id
     // },
-    'infura': {
-      host: "https://ropsten.infura.io/Jf3Y5a2i3RMqIYN9MzSV",
-      provider: engine,
-      from: address,
-      network_id: 3,
-      gas: 3000000
-    }
+    // 'infura': {
+    //   host: "https://ropsten.infura.io/Jf3Y5a2i3RMqIYN9MzSV",
+    //   provider: engine,
+    //   from: address,
+    //   network_id: 3,
+    //   gas: 3000000
+    // }
   }
 };
