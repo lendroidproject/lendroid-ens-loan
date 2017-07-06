@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import MarketContract from '../build/contracts/Market.json'
 import getWeb3 from './utils/getWeb3'
-// import ens from './utils/ensutils-testnet'
 
 import './css/oswald.css'
 import './css/open-sans.css'
@@ -38,6 +37,8 @@ class App extends Component {
 
     getWeb3
     .then(results => {
+      console.log('getWeb3 results')
+      console.log(results)
       this.setState({
         web3: results.web3
       })
@@ -58,12 +59,6 @@ class App extends Component {
      * state management library, but for convenience I've placed them here.
      */
 
-    const contract = require('truffle-contract');
-
-    // const market = contract(MarketContract)
-    // market.setProvider(this.state.web3.currentProvider)
-
-    // Get accounts.
     this.state.web3.eth.getAccounts((error, accounts) => {
 
       console.log('accounts');
@@ -71,53 +66,51 @@ class App extends Component {
       console.log('this.state.web3.version.network')
       console.log(this.state.web3.version.network)
 
-      var market = this.state.web3.eth.contract(MarketContract['abi']).at('0x18Bb3E9fFa18F233564613e4Ed600966D0A122B3');
-      console.log(market);
-      // market.setProvider(this.state.web3.currentProvider);
+      var ensContract=this.state.web3.eth.contract([{constant:!0,inputs:[{name:"node",type:"bytes32"}],name:"resolver",outputs:[{name:"",type:"address"}],payable:!1,type:"function"},{constant:!0,inputs:[{name:"node",type:"bytes32"}],name:"owner",outputs:[{name:"",type:"address"}],payable:!1,type:"function"},{constant:!1,inputs:[{name:"node",type:"bytes32"},{name:"label",type:"bytes32"},{name:"owner",type:"address"}],name:"setSubnodeOwner",outputs:[],payable:!1,type:"function"},{constant:!1,inputs:[{name:"node",type:"bytes32"},{name:"ttl",type:"uint64"}],name:"setTTL",outputs:[],payable:!1,type:"function"},{constant:!0,inputs:[{name:"node",type:"bytes32"}],name:"ttl",outputs:[{name:"",type:"uint64"}],payable:!1,type:"function"},{constant:!1,inputs:[{name:"node",type:"bytes32"},{name:"resolver",type:"address"}],name:"setResolver",outputs:[],payable:!1,type:"function"},{constant:!1,inputs:[{name:"node",type:"bytes32"},{name:"owner",type:"address"}],name:"setOwner",outputs:[],payable:!1,type:"function"},{anonymous:!1,inputs:[{indexed:!0,name:"node",type:"bytes32"},{indexed:!1,name:"owner",type:"address"}],name:"Transfer",type:"event"},{anonymous:!1,inputs:[{indexed:!0,name:"node",type:"bytes32"},{indexed:!0,name:"label",type:"bytes32"},{indexed:!1,name:"owner",type:"address"}],name:"NewOwner",type:"event"},{anonymous:!1,inputs:[{indexed:!0,name:"node",type:"bytes32"},{indexed:!1,name:"resolver",type:"address"}],name:"NewResolver",type:"event"},{anonymous:!1,inputs:[{indexed:!0,name:"node",type:"bytes32"},{indexed:!1,name:"ttl",type:"uint64"}],name:"NewTTL",type:"event"}]);
 
       this.setState({
           userAccount: accounts[0],
-          marketInstance: market,
+          marketInstance: this.state.web3.eth.contract(MarketContract['abi']).at('0x18Bb3E9fFa18F233564613e4Ed600966D0A122B3'),
+          ens: ensContract.at('0x112234455c3a32fd11230c42e7bccd4a84e02010')
       });
       
       var _that = this;
+      console.log(_that.state.marketInstance);
       // Populate state from Market deployment
-      // market.deployed().then((instance) => {
-      //   this.setState({
-      //     marketInstance: instance,
-      //     // ens: ens
-      //   });
-      //   // Get the Daily Interest Rate
-      //   return this.state.marketInstance.getDailyInterestRate.call()
-      // }).then((result) => {
-      //   // Update state with the result.
-      //   return this.setState({ dailyInterestRate: result.c[0] })
-      // });
-      return this.state.marketInstance.getDailyInterestRate.call()
-    }).then((result) => {
-      console.log(result);
-      // Update state with the result.
-      this.setState({ dailyInterestRate: result.c[0] })
-    });
+      this.state.marketInstance.getDailyInterestRate.call(function(err, result){
+        if (err) {
+          alert(err);
+        }
+        else {
+          console.log(result);
+          console.log(err);
+          // Update state with the result.
+          _that.setState({ dailyInterestRate: result.c[0] })
+        }
+      });
+      
+    })
   }
 
   namehash(name) { var node = '0x0000000000000000000000000000000000000000000000000000000000000000'; if (name != '') { var labels = name.split("."); for(var i = labels.length - 1; i >= 0; i--) { node = this.state.web3.sha3(node + this.state.web3.sha3(labels[i]).slice(2), {encoding: 'hex'}); } } return node.toString(); }
 
   handleEnsNameSubmit(event) {
-    console.log('this.ensNameInput: ' + this.ensNameInput.value+'.eth');
-    var ensDomain = this.namehash(this.ensNameInput.value+'.eth');
+    var _that = this;
+    console.log('this.ensNameInput: ' + _that.ensNameInput.value+'.test');
+    var ensDomain = _that.namehash(_that.ensNameInput.value+'.test');
     console.log('ensDomain: ' + ensDomain);
-    // alert()
-    // var owner = this.state.ens.owner(ensDomain),
-    //     resolver = this.state.ens.resolver(ensDomain);
-    // console.log('owner');
-    // console.log(owner);
-    // console.log('resolver');
-    // console.log(resolver);
-    console.log('this.state.userAccount');
-    console.log(this.state.userAccount);
+    _that.state.ens.owner.call(ensDomain, function(err, result){
+      if (err) {
+        alert(err);
+      }
+      else {
+        if (result !== _that.state.userAccount) {
+          alert('It appears this domain does not belong to you. Please specify a domain that you own.')
+          _that.ensNameInput.value = '';
+        }
+      }
+    });
     event.preventDefault();
-    // return false;
   }
 
   render() {
