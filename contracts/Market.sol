@@ -1,12 +1,17 @@
 pragma solidity ^0.4.2;
 
+import './HashRegistrarSimplified.sol';
+
 contract Market {
 
+    AbstractENS public ens;
+    Registrar public registrar;
     uint defaultMaxLoanDuration;
     uint gracePeriodDuration;
     uint gracePeriodFine;
     uint dailyInterestRate;
     uint dailyLGTOffered;
+    address ensContract; // We need this to point to the correct ENS contract address, whenever it changes
     bool acceptingNewLoans;
 
     enum State {
@@ -18,6 +23,7 @@ contract Market {
 
     struct Loan {
         // Fields that would never change throughout the Agreement's longevity
+        string ensDomain;
         uint    maxDurationDays;
         uint    startedOn;
         string  collateralNode; // Hash of the IPFS
@@ -76,6 +82,10 @@ contract Market {
 
     // CONSTRUCTOR
     function Market() {
+        address esnAddress = 0xb766772c58b098d8412143a473aed6bc41c95bde;
+        address registrarAddress = 0xa5c650649b2a8e3f160035cee17b3c7e94b0805f;
+        ens = AbstractENS(esnAddress);
+        registrar = Registrar(registrarAddress);
         defaultMaxLoanDuration = 60;
         gracePeriodDuration = 30;
         gracePeriodFine = 50;
@@ -118,37 +128,32 @@ contract Market {
 
     // PUBLIC FUNCTIONS
 
-    function create(
-            string _cNode, uint _lAmount, uint _period
-        )
-        synchronized
-        returns (uint id)
-    {
+    function create(string _ensDomain) synchronized returns (uint id) {
         Loan memory loan;
         // First check if collatreal owner has enough collateral amount to deposit
         // Transfer ETH
         // var has_collateral_owner_paid = _cAsset.transferFrom(msg.sender, this, _cAmount);
         // assert(has_collateral_owner_paid);
 
-        // Set loan fields
+        // Check status = 2
+        // Deed Contract
 
-        loan.collateralOwner;
-        loan.loanAmount;
-        
+        // Set loan fields
         loan.state = State.ACTIVE;
-        loan.maxDurationDays = _period;
+        loan.maxDurationDays = 30;
         loan.startedOn = now;
-        loan.collateralNode = _cNode;
+        loan.ensDomain = _ensDomain;
+        loan.collateralNode = '0.9';
         loan.collateralOwner = msg.sender;
-        loan.loanAmount = _lAmount;
+        loan.loanAmount = 9;
         id = nextId();
         loans[id] = loan;
     }
 
     // PUBLIC FUNCTIONS
 
-    function newLoan(string _cNode, uint _lAmount, uint _period) returns (bytes32 id) {
-        return bytes32(create(_cNode, _lAmount, _period));
+    function newLoan(string _ensDomain) returns (bytes32 id) {
+        return bytes32(create(_ensDomain));
     }
 
     function getDailyInterestRate() returns(uint) {
@@ -169,6 +174,11 @@ contract Market {
 
     function getAcceptingNewLoans() returns(bool) {
         return acceptingNewLoans;
+    }
+
+    function reclaimDeed(string ensDomainName) returns (bool) {
+        domainSha = sha3(ensDomainName)
+        registrar.transfer(domainSha, msg.sender)
     }
 
 }
