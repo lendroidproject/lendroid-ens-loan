@@ -53,6 +53,7 @@
     "dotenv": "^2.0.0",
     "ethereum-ens": "^0.7.1",
     "ethereumjs-wallet": "^0.6.0",
+    "muicss": "^0.9.17",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
     "web3": "^0.19.1",

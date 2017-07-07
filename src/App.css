@@ -66,3 +66,8 @@ code {
   height: 16px;
   margin-right: 10px;
 }
+
+.ensLoanContainer label {
+  display: block;
+  margin: 32px 0;
+}
