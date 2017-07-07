@@ -1,11 +1,11 @@
 pragma solidity ^0.4.2;
 
-import './HashRegistrarSimplified.sol';
+// import './HashRegistrarSimplified.sol';
 
 contract Market {
 
-    AbstractENS public ens;
-    Registrar public registrar;
+    // AbstractENS public ens;
+    // Registrar public registrar;
     uint defaultMaxLoanDuration;
     uint gracePeriodDuration;
     uint gracePeriodFine;
@@ -84,8 +84,8 @@ contract Market {
     function Market() {
         address esnAddress = 0xb766772c58b098d8412143a473aed6bc41c95bde;
         address registrarAddress = 0xa5c650649b2a8e3f160035cee17b3c7e94b0805f;
-        ens = AbstractENS(esnAddress);
-        registrar = Registrar(registrarAddress);
+        // ens = AbstractENS(esnAddress);
+        // registrar = Registrar(registrarAddress);
         defaultMaxLoanDuration = 60;
         gracePeriodDuration = 30;
         gracePeriodFine = 50;
@@ -176,9 +176,9 @@ contract Market {
         return acceptingNewLoans;
     }
 
-    function reclaimDeed(string ensDomainName) returns (bool) {
-        domainSha = sha3(ensDomainName)
-        registrar.transfer(domainSha, msg.sender)
-    }
+    // function reclaimDeed(string ensDomainName) returns (bool) {
+    //     domainSha = sha3(ensDomainName)
+    //     registrar.transfer(domainSha, msg.sender)
+    // }
 
 }
