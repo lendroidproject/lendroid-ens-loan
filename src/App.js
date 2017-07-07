@@ -6,8 +6,8 @@ import Container from 'muicss/lib/react/container';
 import Tabs from 'muicss/lib/react/tabs';
 import Tab from 'muicss/lib/react/tab';
 // Smart contracts
-import MarketContract from '../build/contracts/Market.json'
-import getWeb3 from './utils/getWeb3'
+import MarketContract from './utils/contracts/Market.json'
+import getWeb3 from './utils/web3/getWeb3'
 // Old CSS
 import './css/oswald.css'
 import './css/open-sans.css'
@@ -209,7 +209,8 @@ class App extends Component {
     var _that = this,
       onlyDomain = _that.ensNameInput.value.split('.')[0];
     _that.setState({
-      deedReclaimed: true
+      deedReclaimed: true,
+      domainNameReclaimed: true
     })
     // _that.state.marketInstance.reclaimDeed(onlyDomain, {from: _that.state.userAccount}, function(err, result) {
     //   console.log('err');
