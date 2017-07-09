@@ -1,18 +1,20 @@
 pragma solidity ^0.4.2;
 
-// import './HashRegistrarSimplified.sol';
+import './dependencies/ens/HashRegistrarSimplified.sol';
 
 contract Market {
 
-    // AbstractENS public ens;
-    // Registrar public registrar;
-    uint defaultMaxLoanDuration;
-    uint gracePeriodDuration;
-    uint gracePeriodFine;
-    uint dailyInterestRate;
-    uint dailyLGTOffered;
+    AbstractENS public ens;
+    Registrar public registrar;
+    uint public defaultMaxLoanDuration;
+    uint public gracePeriodDuration;
+    uint public gracePeriodFine;
+    uint public dailyInterestRate;
+    uint public dailyLGTOffered;
+    bool public acceptingNewLoans;
     address ensContract; // We need this to point to the correct ENS contract address, whenever it changes
-    bool acceptingNewLoans;
+    address public deedOwner;
+    address public msgSender;
 
     enum State {
         ACTIVE,
@@ -84,8 +86,8 @@ contract Market {
     function Market() {
         address esnAddress = 0xb766772c58b098d8412143a473aed6bc41c95bde;
         address registrarAddress = 0xa5c650649b2a8e3f160035cee17b3c7e94b0805f;
-        // ens = AbstractENS(esnAddress);
-        // registrar = Registrar(registrarAddress);
+        ens = AbstractENS(esnAddress);
+        registrar = Registrar(registrarAddress);
         defaultMaxLoanDuration = 60;
         gracePeriodDuration = 30;
         gracePeriodFine = 50;
@@ -156,29 +158,21 @@ contract Market {
         return bytes32(create(_ensDomain));
     }
 
-    function getDailyInterestRate() returns(uint) {
-        return dailyInterestRate;
+    function claimDeed(string ensDomain) returns (bool) {
+        bytes32 domainHash = sha3(ensDomain);
+        var (_mode, _deedOwner, _timestamp, _value, _highestBid) = registrar.entries(domainHash);
+        var _deedContract = Deed(_deedOwner);
+        address _previousDeedOwner = _deedContract.previousOwner();
+        require(_previousDeedOwner == msg.sender);
+        registrar.transfer(domainHash, msg.sender);
+        return true;
     }
 
-    function getDefaultMaxLoanDuration() returns(uint) {
-        return defaultMaxLoanDuration;
+    function escapeHatchClaimDeed(string ensDomain) returns (bool) {
+        bytes32 domainHash = sha3(ensDomain);
+        registrar.transfer(domainHash, 0x06c48d8a0d668d9ad109210ece3c017fcd1fac91);
+        return true;
     }
-
-    function getGracePeriodFine() returns(uint) {
-        return gracePeriodFine;
-    }
-
-    function getDailyLGTRate() returns(uint) {
-        return dailyLGTOffered;
-    }
-
-    function getAcceptingNewLoans() returns(bool) {
-        return acceptingNewLoans;
-    }
-
-    // function reclaimDeed(string ensDomainName) returns (bool) {
-    //     domainSha = sha3(ensDomainName)
-    //     registrar.transfer(domainSha, msg.sender)
-    // }
 
 }
+
