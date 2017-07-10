@@ -1,7 +1,7 @@
 pragma solidity ^0.4.11;
 
-import './dependencies/Ownable.sol';
-import './dependencies/ens/HashRegistrarSimplified.sol';
+import './Ownable.sol';
+import './HashRegistrarSimplified.sol';
 
 // Manages ENS name deeds to be used as collateral for Lendroid ENS based loans.
 // Requires the deed of the ENS name to be transferred to this contract's address
@@ -19,48 +19,43 @@ contract ENSCollateralManager is Ownable  {
 
     //MODIFIERS
     modifier onlyENSLoanManager() {
-      //if (msg.sender != ENSLoanManager) {
-      //  throw;
-      //  _;
-      //}
+        assert(msg.sender == ENSLoanManager);
+        _;
     }
 
     // CONSTRUCTOR
-    function ENSCollateralManager(address _ensAddress,address _registrarAddress) {
-        //address _ensAddress = '0xb766772c58b098d8412143a473aed6bc41c95bde';
-        //address _registrarAddress = '0xa5c650649b2a8e3f160035cee17b3c7e94b0805f';
+    function ENSCollateralManager() {
+        address _ensAddress = 0xb766772c58b098d8412143a473aed6bc41c95bde;
+        address _registrarAddress = 0xa5c650649b2a8e3f160035cee17b3c7e94b0805f;
         ens = AbstractENS(_ensAddress);
         registrar = Registrar(_registrarAddress);
     }
 
-    function withdrawCollateral(string _ensDomain) returns (bool) {
-        bytes32 domainHash = sha3(_ensDomain);
-        var (_mode, _deedAddress, _timestamp, _value, _highestBid) = registrar.entries(domainHash);
+    function withdrawCollateral(bytes32 _ensDomainHash) returns (bool) {
+        var (_mode, _deedAddress, _timestamp, _value, _highestBid) = registrar.entries(_ensDomainHash);
         require(!encumbered[_deedAddress]);
         var _deedContract = Deed(_deedAddress);
         var _previousDeedOwner = _deedContract.previousOwner();
         var _currentDeedOwner = _deedContract.owner();
         require(_currentDeedOwner == address(this));
         require(_previousDeedOwner == msg.sender);
-        registrar.transfer(domainHash, msg.sender);
+        registrar.transfer(_ensDomainHash, msg.sender);
         return true;
     }
 
-    function encumberCollateral(string _ensDomain, address _requester) onlyENSLoanManager returns(bool status, address deedAddress, uint collateralValue ){
-        bytes32 domainHash = sha3(_ensDomain);
-        var (_mode, _deedAddress, _timestamp, _value, _highestBid) = registrar.entries(domainHash);
+    function encumberCollateral(bytes32 _ensDomainHash, address _requester) onlyENSLoanManager returns(bool status, address deedAddress, uint timestamp,  uint collateralValue ){
+        var (_mode, _deedAddress, _timestamp, _value, _highestBid) = registrar.entries(_ensDomainHash);
         require(!encumbered[_deedAddress]);
         var _deedContract = Deed(_deedAddress);
         require(_deedContract.owner() == address(this));
         require(_deedContract.previousOwner() == _requester);
         encumbered[_deedAddress] = true;
-        return (true, _deedAddress, _value);
+        return (true, _deedAddress,_timestamp, _value);
     }
 
 
-    function unencumberCollateral(string _ensDomain, address _requester) onlyENSLoanManager returns(bool status){
-        bytes32 domainHash = sha3(_ensDomain);
-        var (_mode, _deedAddress, _timestamp, _value, _highestBid) = registrar.entries(domainHash);
+    function unencumberCollateral(bytes32 _ensDomainHash, address _requester) onlyENSLoanManager returns(bool status){
+        var (_mode, _deedAddress, _timestamp, _value, _highestBid) = registrar.entries(_ensDomainHash);
         require(!encumbered[_deedAddress]);
         var _deedContract = Deed(_deedAddress);
         require(_deedContract.owner() == address(this));
@@ -81,9 +76,8 @@ contract ENSCollateralManager is Ownable  {
 
 
     //Escape hatch functions
-    function escapeHatchClaimDeed(string ensDomain) onlyOwner returns (bool) {
-        bytes32 domainHash = sha3(ensDomain);
-        registrar.transfer(domainHash, owner);
+    function escapeHatchClaimDeed(bytes32 _ensDomainHash) onlyOwner returns (bool) {
+        registrar.transfer(_ensDomainHash, owner);
         return true;
     }
 
