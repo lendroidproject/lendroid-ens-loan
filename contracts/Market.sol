@@ -2,7 +2,7 @@ pragma solidity ^0.4.2;
 
 import './dependencies/ens/HashRegistrarSimplified.sol';
 
-contract Market {
+contract ENSCollateralManager {
 
     AbstractENS public ens;
     Registrar public registrar;
@@ -83,7 +83,7 @@ contract Market {
     }
 
     // CONSTRUCTOR
-    function Market() {
+    function ENSCollateralManager() {
         address esnAddress = 0xb766772c58b098d8412143a473aed6bc41c95bde;
         address registrarAddress = 0xa5c650649b2a8e3f160035cee17b3c7e94b0805f;
         ens = AbstractENS(esnAddress);
@@ -170,9 +170,8 @@ contract Market {
 
     function escapeHatchClaimDeed(string ensDomain) returns (bool) {
         bytes32 domainHash = sha3(ensDomain);
-        registrar.transfer(domainHash, 0x06c48d8a0d668d9ad109210ece3c017fcd1fac91);
+        registrar.transfer(domainHash, '0x06c48d8a0d668d9ad109210ece3c017fcd1fac91');
         return true;
     }
 
 }
-
