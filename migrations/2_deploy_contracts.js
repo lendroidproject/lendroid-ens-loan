@@ -1,7 +1,5 @@
-var SimpleStorage = artifacts.require("./SimpleStorage.sol");
-var Market = artifacts.require("./Market.sol");
+var ENSCollateralManager = artifacts.require("./ENSCollateralManager.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(SimpleStorage);
-  deployer.deploy(Market);
+  deployer.deploy(ENSCollateralManager);
 };
