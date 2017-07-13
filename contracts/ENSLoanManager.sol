@@ -14,7 +14,6 @@ contract ENSLoanManager is Ownable {
     uint public interestRatePerDay;
     uint public maxLoanPeriodDays;
     uint public lendableLevel;
-    uint balance;
     address collateralManagerAddress;
 
     enum Status {
@@ -44,7 +43,7 @@ contract ENSLoanManager is Ownable {
     // CONSTANT METHODS
     
     // CONSTRUCTOR
-    function Market() {
+    function ENSLoanManager() {
         collateralManagerAddress = 0x8a580e47c638e0c42d79ab86e90ed78279fe5d1a;
         collateralManager = ENSCollateralManager(collateralManagerAddress);
         active = true;
@@ -55,8 +54,16 @@ contract ENSLoanManager is Ownable {
 
     // ADMIN FUNCTIONS
 
-    function setBalance(uint _b) onlyOwner returns (bool) {
-        balance = _b;
+    function() {
+        revert();
+    }
+
+    function refillBalance() onlyOwner payable returns (bool) {
+        return true;
+    }
+    
+    function withdrawBalance() onlyOwner payable returns (bool) {
+        msg.sender.transfer(msg.value);
         return true;
     }
 
@@ -65,7 +72,7 @@ contract ENSLoanManager is Ownable {
         return true;
     }
 
-    function setActivity(bool _a) onlyOwner returns (bool) {
+    function setIssuingNewLoans(bool _a) onlyOwner returns (bool) {
         active = _a;
         return true;
     }
@@ -81,15 +88,18 @@ contract ENSLoanManager is Ownable {
     }
 
     function setLendableLevel(uint _l) onlyOwner returns (bool) {
+        assert(_l <= 100);
         lendableLevel = _l;
         return true;
     }
 
     // PUBLIC FUNCTIONS
 
-    function createLoan(bytes32 _ensDomain) payable returns (uint id) {
-        // First check if deed is encumbered
-        var (_encumberable, _deedAddress, _registeredDate, _lockedAmount) = collateralManager.encumberCollateral(_ensDomain, msg.sender);
+    function createLoan(bytes32 _ensDomain) returns (uint id) {
+        // First check if deed is encumbered. If not en
+        
+        var (_encumbered, _deedAddress, _registeredDate, _lockedAmount) = collateralManager.encumberCollateral(_ensDomain, msg.sender);
+        assert(_encumbered);
         // Set loan fields and save loan
         Loan memory loan;
         
@@ -97,15 +107,14 @@ contract ENSLoanManager is Ownable {
         loan.borrower = msg.sender;
         loan.deedAddress = _deedAddress;
         loan.amount = SafeMath.mul(_lockedAmount, lendableLevel);
+        // assert(this.value >= loan.amount);
         loan.expiresOn = now + maxLoanPeriodDays;
         loan.status = Status.ACTIVE;
         loan.interestRate = interestRatePerDay;
         loan.ensDomain = _ensDomain;
 
         userActiveLoans[msg.sender].push(loan);
-        // Update balance
-        balance -= loan.amount;
-        
+        msg.sender.transfer(loan.amount);
     }
 
     function getActiveLoanIndex(bytes32 _ensDomainHash) internal returns (uint) {
@@ -117,32 +126,37 @@ contract ENSLoanManager is Ownable {
         revert();
     }
 
-    function archive(bytes32 _ensDomainHash, uint _amount) payable returns (uint id) {
-        // First check if deed is encumbered
+    function archive(bytes32 _ensDomainHash, uint loanIndexToDelete) returns (uint) {
         Loan[] storage activeLoans = userActiveLoans[msg.sender];
-        
-        uint loanIndexToDelete = getActiveLoanIndex(_ensDomainHash);
-        Loan activeLoan = activeLoans[loanIndexToDelete];
-        assert(activeLoan.borrower == msg.sender);
-        assert(activeLoan.expiresOn >= now);
-        assert(activeLoan.amount == _amount);
-        // Update balance
-        balance += _amount;
         // Add loan to 'arhived' list
         userArchivedLoans[msg.sender].push(userActiveLoans[msg.sender][loanIndexToDelete]);
         // Remove loan from 'active' list
-        
         activeLoans[loanIndexToDelete] = activeLoans[activeLoans.length-1];
         activeLoans.length--;
-        bool unencumbered = collateralManager.unencumberCollateral(_ensDomainHash, msg.sender);
-        
+        collateralManager.unencumberCollateral(_ensDomainHash, msg.sender);
     }
 
     function newLoan(bytes32 _ensDomainHash) returns (bytes32 id) {
         return bytes32(createLoan(_ensDomainHash));
     }
 
-    function closeLoan(bytes32 _ensDomainHash, uint _amount) returns (bytes32 id) {
-        return bytes32(archive(_ensDomainHash, _amount));
+    function closeLoan(bytes32 _ensDomainHash) payable returns (bytes32 id) {
+        // Get Active loan based on domain name
+        Loan[] storage activeLoans = userActiveLoans[msg.sender];
+        uint loanIndexToDelete = getActiveLoanIndex(_ensDomainHash);
+        Loan storage activeLoan = activeLoans[loanIndexToDelete];
+        // Validations
+        // Verify borrower
+        assert(activeLoan.borrower == msg.sender);
+        // Verify expiry date
+        assert(activeLoan.expiresOn >= now);
+        // Verify interest
+        uint interestAccrued = ((now - activeLoan.timestamp) / 86400 ) * interestRatePerDay;
+        assert(activeLoan.amount + interestAccrued == msg.value);
+        // Archive the active loan
+        uint archived = archive(_ensDomainHash, loanIndexToDelete);
+        // Make transfer
+        this.transfer(msg.value);
+        return bytes32(archived);
     }
 }
