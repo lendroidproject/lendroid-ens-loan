@@ -145,7 +145,7 @@ contract ENSLoanManager is Ownable {
         // Verify interest
         uint256 daysSinceLoan = (now - activeLoan.timestamp).div(86400);
         uint256 interestAccrued = percentOf(activeLoan.amount , interestRatePerDay).mul(daysSinceLoan);
-        assert(activeLoan.amount.add(interestAccrued) == msg.value);
+        assert(interestAccrued.add(activeLoan.amount) == msg.value);
         // Archive the active loan
         delete loans[_deedAddress];
 
