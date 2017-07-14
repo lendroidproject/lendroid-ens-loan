@@ -35,8 +35,7 @@ contract ENSLoanManager is Ownable {
         Status  status;
     }
 
-    mapping (address => Loan[]) public userActiveLoans;
-    mapping (address => Loan[]) public userArchivedLoans;
+    mapping (address => Loan) public loans;
 
     // MODIFIERS
 
@@ -51,7 +50,7 @@ contract ENSLoanManager is Ownable {
         collateralManager = ENSCollateralManager(collateralManagerAddress);
         active = true;
         interestRatePerDay = 100;
-        maxLoanPeriodDays = 30;
+        maxLoanPeriodDays = 30 days;
         lendableLevel = 8000;
 
     }
@@ -119,39 +118,25 @@ contract ENSLoanManager is Ownable {
         loan.interestRate = interestRatePerDay;
         loan.ensDomain = _ensDomain;
 
-        userActiveLoans[msg.sender].push(loan);
-        msg.sender.transfer(loan.amount);
+        loans[_deedAddress] = loan;
+        assert(msg.sender.send(loan.amount));
         return true;
-    }
-
-    function getActiveLoanIndex(bytes32 _ensDomainHash) internal returns (uint256) {
-        for (uint256 loanIndex = 0; loanIndex < userActiveLoans[msg.sender].length; loanIndex++) {
-            if (userActiveLoans[msg.sender][loanIndex].ensDomain == _ensDomainHash) {
-                return loanIndex;
-            }
-        }
-        revert();
-    }
-
-    function archive(bytes32 _ensDomainHash, uint256 loanIndexToDelete) returns (uint256) {
-        Loan[] storage activeLoans = userActiveLoans[msg.sender];
-        // Add loan to 'arhived' list
-        userArchivedLoans[msg.sender].push(userActiveLoans[msg.sender][loanIndexToDelete]);
-        // Remove loan from 'active' list
-        activeLoans[loanIndexToDelete] = activeLoans[activeLoans.length-1];
-        activeLoans.length--;
-        collateralManager.unencumberCollateral(_ensDomainHash, msg.sender);
     }
 
     function newLoan(bytes32 _ensDomainHash) returns (bool) {
         return (createLoan(_ensDomainHash));
     }
 
-    function closeLoan(bytes32 _ensDomainHash) payable returns (bytes32 id) {
+    function amountOwed(address _deedaddress) constant returns (uint256) {
+        Loan storage activeLoan = loans[_deedAddress];
+        uint256 daysSinceLoan = (now - activeLoan.timestamp).div(86400);
+        uint256 interestAccrued = percentOf(activeLoan.amount , interestRatePerDay).mul(daysSinceLoan);
+        return interestAccrued.add(activeLoan.amount);
+    }
+
+    function closeLoan(address _deedaddress) payable returns (bool) {
         // Get Active loan based on domain name
-        Loan[] storage activeLoans = userActiveLoans[msg.sender];
-        uint256 loanIndexToDelete = getActiveLoanIndex(_ensDomainHash);
-        Loan storage activeLoan = activeLoans[loanIndexToDelete];
+        Loan activeLoan = loans[_deedaddress];
         // Validations
         // Verify borrower
         assert(activeLoan.borrower == msg.sender);
@@ -160,11 +145,11 @@ contract ENSLoanManager is Ownable {
         // Verify interest
         uint256 daysSinceLoan = (now - activeLoan.timestamp).div(86400);
         uint256 interestAccrued = percentOf(activeLoan.amount , interestRatePerDay).mul(daysSinceLoan);
-        assert(activeLoan.amount + interestAccrued == msg.value);
+        assert(activeLoan.amount.add(interestAccrued) == msg.value);
         // Archive the active loan
-        uint256 archived = archive(_ensDomainHash, loanIndexToDelete);
+        delete loans[_deedAddress];
 
         assert(collateralManager.unencumberCollateral(_ensDomainHash, msg.sender));
-        return bytes32(archived);
+        return true;
     }
 }
