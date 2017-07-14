@@ -24,7 +24,7 @@ contract ENSLoanManager is Ownable {
     }
 
     struct Loan {
-        bytes32  ensDomain;
+        bytes32  ensDomainHash;
         uint256    timestamp;
         address borrower;
         address deedAddress;
@@ -100,10 +100,10 @@ contract ENSLoanManager is Ownable {
 
     // PUBLIC FUNCTIONS
 
-    function createLoan(bytes32 _ensDomain) returns (bool) {
+    function createLoan(bytes32 _ensDomainHash) returns (bool) {
         // First check if deed is encumbered. If not en
 
-        var (_encumbered, _deedAddress, _registeredDate, _lockedAmount) = collateralManager.encumberCollateral(_ensDomain, msg.sender);
+        var (_encumbered, _deedAddress, _registeredDate, _lockedAmount) = collateralManager.encumberCollateral(_ensDomainHash, msg.sender);
         assert(_encumbered);
         // Set loan fields and save loan
         Loan memory loan;
@@ -116,7 +116,7 @@ contract ENSLoanManager is Ownable {
         loan.expiresOn = now + maxLoanPeriodDays;
         loan.status = Status.ACTIVE;
         loan.interestRate = interestRatePerDay;
-        loan.ensDomain = _ensDomain;
+        loan.ensDomainHash = _ensDomainHash;
 
         loans[_deedAddress] = loan;
         assert(msg.sender.send(loan.amount));
@@ -127,16 +127,16 @@ contract ENSLoanManager is Ownable {
         return (createLoan(_ensDomainHash));
     }
 
-    function amountOwed(address _deedaddress) constant returns (uint256) {
-        Loan storage activeLoan = loans[_deedAddress];
+    function amountOwed(address _deedAddress) constant returns (uint256) {
+        Loan activeLoan = loans[_deedAddress];
         uint256 daysSinceLoan = (now - activeLoan.timestamp).div(86400);
         uint256 interestAccrued = percentOf(activeLoan.amount , interestRatePerDay).mul(daysSinceLoan);
         return interestAccrued.add(activeLoan.amount);
     }
 
-    function closeLoan(address _deedaddress) payable returns (bool) {
+    function closeLoan(address _deedAddress) payable returns (bool) {
         // Get Active loan based on domain name
-        Loan activeLoan = loans[_deedaddress];
+        Loan activeLoan = loans[_deedAddress];
         // Validations
         // Verify borrower
         assert(activeLoan.borrower == msg.sender);
@@ -149,7 +149,7 @@ contract ENSLoanManager is Ownable {
         // Archive the active loan
         delete loans[_deedAddress];
 
-        assert(collateralManager.unencumberCollateral(_ensDomainHash, msg.sender));
+        assert(collateralManager.unencumberCollateral(activeLoan.ensDomainHash, msg.sender));
         return true;
     }
 }
