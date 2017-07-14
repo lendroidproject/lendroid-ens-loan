@@ -56,7 +56,7 @@ contract ENSCollateralManager is Ownable  {
 
     function unencumberCollateral(bytes32 _ensDomainHash, address _requester) onlyENSLoanManager returns(bool status){
         var (_mode, _deedAddress, _timestamp, _value, _highestBid) = registrar.entries(_ensDomainHash);
-        require(!encumbered[_deedAddress]);
+        require(encumbered[_deedAddress]);
         var _deedContract = Deed(_deedAddress);
         require(_deedContract.owner() == address(this));
         require(_deedContract.previousOwner() == _requester);
@@ -64,6 +64,10 @@ contract ENSCollateralManager is Ownable  {
         return true;
     }
 
+    function forceUnencumberCollateral(address _deedAddress) onlyOwner returns (bool) {
+        encumbered[_deedAddress] = false;
+        return true;
+    }
 
     //TODO: function to transfer capability to manage the ENS name while the deed contract stays with this contract.
 
