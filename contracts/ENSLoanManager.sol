@@ -30,6 +30,7 @@ contract ENSLoanManager is Ownable {
         address deedAddress;
         uint256  amount;
         uint256  amountPaid;
+        uint256    lastUpdated;
         uint256    expiresOn;
         uint256  interestRate;
         Status  status;
@@ -147,8 +148,9 @@ contract ENSLoanManager is Ownable {
         uint256 interestAccrued = percentOf(activeLoan.amount , interestRatePerDay).mul(daysSinceLoan);
         assert(interestAccrued.add(activeLoan.amount) == msg.value);
         // Archive the active loan
-        delete loans[_deedAddress];
-
+        activeLoan.status = Status.CLOSED;
+        activeLoan.amountPaid = msg.value;
+        activeLoan.lastUpdated = now;
         assert(collateralManager.unencumberCollateral(activeLoan.ensDomainHash, msg.sender));
         return true;
     }
