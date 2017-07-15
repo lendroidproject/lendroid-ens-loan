@@ -106,10 +106,8 @@ contract ENSLoanManager is Ownable {
     }
 
     // PUBLIC FUNCTIONS
-    function createLoan(bytes32 _ensDomainHash) returns (bool) {
-        // First check if deed is encumbered. If not en
-
-        //bytes32 _ensDomainHash = sha3(_ensDomainName);
+    function createLoan(bytes32 _ensDomainName) returns (bool) {
+        bytes32 _ensDomainHash = sha3(_ensDomainName);
 
         var (_encumbered, _deedAddress, _registeredDate, _lockedAmount) = collateralManager.encumberCollateral(_ensDomainHash, msg.sender);
         assert(_encumbered);
@@ -119,20 +117,17 @@ contract ENSLoanManager is Ownable {
         loan.timestamp = now;
         loan.borrower = msg.sender;
         loan.deedAddress = _deedAddress;
-        //loan.ensDomainName = _ensDomainName;
+        loan.ensDomainName = _ensDomainName;
+        loan.ensDomainHash = _ensDomainHash;
         loan.amount = percentOf(_lockedAmount,lendableLevel);
         // assert(this.value >= loan.amount);
         loan.expiresOn = now + maxLoanPeriodDays;
         loan.status = Status.ACTIVE;
         loan.interestRate = interestRatePerDay;
-        loan.ensDomainHash = _ensDomainHash;
-
         loans[_deedAddress] = loan;
         assert(msg.sender.send(loan.amount));
         return true;
     }
-
-
 
     function amountOwed(address _deedAddress) constant returns (uint256) {
         Loan activeLoan = loans[_deedAddress];
