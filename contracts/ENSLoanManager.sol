@@ -13,18 +13,19 @@ contract ENSLoanManager is Ownable {
     uint256 public constant decimals = 4;
     uint256 public interestRatePerDay;
     uint256 public maxLoanPeriodDays;
+    uint256 public gracePeriodDays;
     uint256 public lendableLevel;
     address collateralManagerAddress;
 
     enum Status {
         ACTIVE,
         CLOSED,
-        GRACE_PERIOD,
         DEFAULTED
     }
 
     struct Loan {
         bytes32  ensDomainHash;
+        bytes32  ensDomainName;
         uint256    timestamp;
         address borrower;
         address deedAddress;
@@ -52,6 +53,7 @@ contract ENSLoanManager is Ownable {
         active = true;
         interestRatePerDay = 100;
         maxLoanPeriodDays = 30 days;
+        gracePeriodDays = 100 days;
         lendableLevel = 8000;
 
     }
@@ -91,18 +93,23 @@ contract ENSLoanManager is Ownable {
         return true;
     }
 
+    function setGracePeriodDays(uint256 _d) onlyOwner returns (bool) {
+        gracePeriodDays = _d;
+        return true;
+    }
+
+
     function setLendableLevel(uint256 _l) onlyOwner returns (bool) {
         require(_l <= (10 ** decimals));
         lendableLevel = _l;
         return true;
     }
 
-
-
     // PUBLIC FUNCTIONS
-
     function createLoan(bytes32 _ensDomainHash) returns (bool) {
         // First check if deed is encumbered. If not en
+
+        //bytes32 _ensDomainHash = sha3(_ensDomainName);
 
         var (_encumbered, _deedAddress, _registeredDate, _lockedAmount) = collateralManager.encumberCollateral(_ensDomainHash, msg.sender);
         assert(_encumbered);
@@ -112,6 +119,7 @@ contract ENSLoanManager is Ownable {
         loan.timestamp = now;
         loan.borrower = msg.sender;
         loan.deedAddress = _deedAddress;
+        //loan.ensDomainName = _ensDomainName;
         loan.amount = percentOf(_lockedAmount,lendableLevel);
         // assert(this.value >= loan.amount);
         loan.expiresOn = now + maxLoanPeriodDays;
@@ -124,14 +132,15 @@ contract ENSLoanManager is Ownable {
         return true;
     }
 
-    function newLoan(bytes32 _ensDomainHash) returns (bool) {
-        return (createLoan(_ensDomainHash));
-    }
+
 
     function amountOwed(address _deedAddress) constant returns (uint256) {
         Loan activeLoan = loans[_deedAddress];
         uint256 daysSinceLoan = (now - activeLoan.timestamp).div(86400);
         uint256 interestAccrued = percentOf(activeLoan.amount , interestRatePerDay).mul(daysSinceLoan);
+        if (activeLoan.expiresOn < now) {
+            return 0;
+        }
         return interestAccrued.add(activeLoan.amount);
     }
 
@@ -142,7 +151,7 @@ contract ENSLoanManager is Ownable {
         // Verify borrower
         assert(activeLoan.borrower == msg.sender);
         // Verify expiry date
-        assert(activeLoan.expiresOn >= now);
+        assert(activeLoan.expiresOn.add(gracePeriodDays) >= now);
         // Verify interest
         uint256 daysSinceLoan = (now - activeLoan.timestamp).div(86400);
         uint256 interestAccrued = percentOf(activeLoan.amount , interestRatePerDay).mul(daysSinceLoan);
