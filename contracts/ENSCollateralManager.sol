@@ -24,7 +24,7 @@ import './HashRegistrarSimplified.sol';
  * 6: The user is free to 'manage/use' the name while the name stays with this 
  *    contract even while encumbered but not when they have failed to close a loan on time.
  */
-contract ENSCollateralManager is Ownable  {
+contract ENSCollateralManager is Ownable {
 
     AbstractENS public ens;
     Registrar public registrar;
@@ -87,7 +87,12 @@ contract ENSCollateralManager is Ownable  {
     *      _value : Obtained from the ENS contract, to determine the value of the domain
     * @param _ensDomainHash: sha of the ENS domain name, _requester: address that borrowed the loan.
     */
-    function encumberCollateral(bytes32 _ensDomainHash, address _requester) onlyENSLoanManager returns(bool status, address deedAddress, uint timestamp,  uint collateralValue ){
+    function encumberCollateral(bytes32 _ensDomainHash, address _requester) onlyENSLoanManager returns (
+        bool,
+        address, 
+        uint, 
+        uint
+    ) {
         var (_mode, _deedAddress, _timestamp, _value, _highestBid) = registrar.entries(_ensDomainHash);
         require(!encumbered[_deedAddress]);
         var _deedContract = Deed(_deedAddress);
@@ -110,7 +115,7 @@ contract ENSCollateralManager is Ownable  {
     *    contract:
     * @param _ensDomainHash: sha of the ENS domain name, _requester: address that borrowed the loan.
     */
-    function unencumberCollateral(bytes32 _ensDomainHash, address _requester) onlyENSLoanManager returns(bool status){
+    function unencumberCollateral(bytes32 _ensDomainHash, address _requester) onlyENSLoanManager returns(bool) {
         var (_mode, _deedAddress, _timestamp, _value, _highestBid) = registrar.entries(_ensDomainHash);
         require(encumbered[_deedAddress]);
         var _deedContract = Deed(_deedAddress);
