@@ -41,7 +41,7 @@ contract Ownable {
         @dev Allows the current owner to kill the contract and redeem its funds
     */
     function kill() onlyOwner { 
-        selfDestruct(owner); 
+        selfdestruct(owner); 
     }
 
 }
