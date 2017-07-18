@@ -1,16 +1,16 @@
 pragma solidity ^0.4.2;
 
 import './ENSCollateralManager.sol';
-import './SafeMath.sol';
-import './Ownable.sol';
+import './dependencies/SafeMath.sol';
+import './dependencies/Ownable.sol';
 
 
 /**
     @title ENSLoanManager
-    @notice The ENSLoanManager contract inherits the Ownable contract, and manages Lendroid's ENS-based 
+    @notice The ENSLoanManager contract inherits the Ownable contract, and manages Lendroid's ENS-based
         loans.
     @dev The contract has the following parameters:
-            - Reference to ENSCollateralManager contract: To deposit the ENS domain as a collateral when 
+            - Reference to ENSCollateralManager contract: To deposit the ENS domain as a collateral when
               creating a loan, to withdraw the collateral after closing a loan.
             - active: Specifies whether the contract accepts further loans.
             - interestRatePerDay: Sets daily interest rates on existing loans.
@@ -33,8 +33,8 @@ import './Ownable.sol';
                 - Closed: The loan amount has been paid
                 - Defaulted: The loan period has expired, but the loan amount has not been paid.
         The contract works as follows:
-            1. Opening a Loan - After depositing the ENS domain as a collateral, the specifications of the loan 
-               are set based on the contract's parameters. The loan is then created and mapped with it's deed 
+            1. Opening a Loan - After depositing the ENS domain as a collateral, the specifications of the loan
+               are set based on the contract's parameters. The loan is then created and mapped with it's deed
                address.
             2. Managing a Loan - An existing loan can be managed by providing it's deed address. Currently,
                a borrower can perform the following actions:
@@ -81,7 +81,7 @@ contract ENSLoanManager is Ownable {
         return _quantity.mul(_percentage).div(10 ** decimals);
     }
 
-    /** 
+    /**
         @notice The ENSLoanManager constructor sets the following values:
             - The address of the deployed ENSCollateralManager contract
             - The 'active value'
@@ -91,7 +91,7 @@ contract ENSLoanManager is Ownable {
             - The lendable level
     */
     function ENSLoanManager() {
-        collateralManagerAddress = 0xe1f710cc425233320b04f74f231efe77fd162f55;
+        collateralManagerAddress = 0xE1f710CC425233320b04F74f231EfE77Fd162f55;
         collateralManager = ENSCollateralManager(collateralManagerAddress);
         active = true;
         interestRatePerDay = 100;
@@ -101,7 +101,7 @@ contract ENSLoanManager is Ownable {
     }
 
     /**
-        @dev Throws if called by any account. 
+        @dev Throws if called by any account.
     */
     function() {
         revert();
@@ -121,6 +121,7 @@ contract ENSLoanManager is Ownable {
 
         var (_encumbered, _deedAddress, _registeredDate, _lockedAmount) = collateralManager.encumberCollateral(_ensDomainHash, msg.sender);
         assert(_encumbered);
+        _registeredDate;
         // Set loan fields and save loan
         Loan memory loan;
 

@@ -1,27 +1,27 @@
 pragma solidity ^0.4.11;
 
-import './Ownable.sol';
-import './HashRegistrarSimplified.sol';
+import './dependencies/Ownable.sol';
+import './dependencies/ens/HashRegistrarSimplified.sol';
 
 
 /**
     @title ENSCollateralManager
-    @notice The ENSCollateralManager contract inherits the Ownable contract, and 
+    @notice The ENSCollateralManager contract inherits the Ownable contract, and
         manages ENS name deeds to be used as collateral for Lendroid's ENS-based loans.
     @dev The contract has references to the following external contracts:
         1. Registrar Contract from ENS - To verify and transfer domain ownership
         2. LoanManager Contract - To interact with this contract while (un) / encumbering
            a deed
         The contract works as follows:
-        1. Depositing the Collateral - The deed of the ENS name is required to be 
+        1. Depositing the Collateral - The deed of the ENS name is required to be
            transferred to this contract's address.
-        2. Once the ENS name is transferred to this contract, the user can use the 
+        2. Once the ENS name is transferred to this contract, the user can use the
            ens-loan contract to request a loan.
         3. If the ENS name is locked up for a loan, the deed is not transfarable.
-        4. If the user fails to repay the loan before the agreed expiry time, 
+        4. If the user fails to repay the loan before the agreed expiry time,
            they forfeit the right to reclaim the deed.
         5. Only the ENSLoanManager contract can request the contract to encumber/unencumber a deed.
-        6. The user is free to 'manage/use' the name while the name stays with this 
+        6. The user is free to 'manage/use' the name while the name stays with this
            contract even while encumbered but not when they have failed to close a loan on time.
 */
 contract ENSCollateralManager is Ownable {
@@ -32,32 +32,32 @@ contract ENSCollateralManager is Ownable {
     mapping(address=>bool) public encumbered;
 
     /**
-        @dev Throws if called by any account other than the LoanManager. 
+        @dev Throws if called by any account other than the LoanManager.
     */
     modifier onlyENSLoanManager() {
         assert(msg.sender == ENSLoanManager);
         _;
     }
 
-    /** 
+    /**
         @notice The ENSCollateralManager constructor sets the ENS Registrar address.
     */
     function ENSCollateralManager() {
-        address _ensAddress = 0xb766772c58b098d8412143a473aed6bc41c95bde;
-        address _registrarAddress = 0xa5c650649b2a8e3f160035cee17b3c7e94b0805f;
+        address _ensAddress = 0xA6Fcd58d300db4Bc65f57C18FC6B6265aC05E95C;
+        address _registrarAddress = 0xA5c650649B2A8e3f160035cEE17B3c7E94b0805f;
         ens = AbstractENS(_ensAddress);
         registrar = Registrar(_registrarAddress);
     }
 
     /**
-        @notice Encumbers the deed address of a given ENS domain (collateral). This locks collateral 
+        @notice Encumbers the deed address of a given ENS domain (collateral). This locks collateral
             until the loan amount is paid out.
         @dev The function works on the following algorithm:
             1. The current and previous owners of the domain are obtained from ENS Registrar and Deed
                contracts.
             2. The _requester is verified as the previous owner, while the contract is verified
                as the current owner of the domain.
-            3. The contract encumbers the deed and sends the following values back to the LoanManager 
+            3. The contract encumbers the deed and sends the following values back to the LoanManager
                contract:
         @param _ensDomainHash sha of the ENS domain name
         @param _requester address that borrowed the loan
@@ -73,6 +73,8 @@ contract ENSCollateralManager is Ownable {
         uint
     ) {
         var (_mode, _deedAddress, _timestamp, _value, _highestBid) = registrar.entries(_ensDomainHash);
+        _mode;
+        _highestBid;
         require(!encumbered[_deedAddress]);
         var _deedContract = Deed(_deedAddress);
         require(_deedContract.owner() == address(this));
@@ -96,6 +98,10 @@ contract ENSCollateralManager is Ownable {
     */
     function unencumberCollateral(bytes32 _ensDomainHash, address _requester) onlyENSLoanManager returns(bool) {
         var (_mode, _deedAddress, _timestamp, _value, _highestBid) = registrar.entries(_ensDomainHash);
+        _mode;
+        _highestBid;
+        _timestamp;
+        _value;
         require(encumbered[_deedAddress]);
         var _deedContract = Deed(_deedAddress);
         require(_deedContract.owner() == address(this));
@@ -117,6 +123,10 @@ contract ENSCollateralManager is Ownable {
     */
     function withdrawCollateral(bytes32 _ensDomainHash) returns (bool) {
         var (_mode, _deedAddress, _timestamp, _value, _highestBid) = registrar.entries(_ensDomainHash);
+        _value;
+        _mode;
+        _timestamp;
+        _highestBid;
         require(!encumbered[_deedAddress]);
         var _deedContract = Deed(_deedAddress);
         var _previousDeedOwner = _deedContract.previousOwner();
@@ -139,7 +149,7 @@ contract ENSCollateralManager is Ownable {
 
     /**
         @notice allows the current owner to change the address of the LoanManager Contract.
-        @dev This function is for migration purposes so that the function calls encumberCollateral() 
+        @dev This function is for migration purposes so that the function calls encumberCollateral()
             and unencumberCollateral() are restricted to just the LoanManager contract.
         @param _ENSLoanManager the address of the LoanManager contract
         @return true an acknowledgement that the _ENSLoanManager was changed by the owner
