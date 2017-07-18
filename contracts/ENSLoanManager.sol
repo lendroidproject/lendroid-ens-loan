@@ -91,7 +91,7 @@ contract ENSLoanManager is Ownable {
             - The lendable level
     */
     function ENSLoanManager() {
-        collateralManagerAddress = 0x8a580e47c638e0c42d79ab86e90ed78279fe5d1a;
+        collateralManagerAddress = 0xe1f710cc425233320b04f74f231efe77fd162f55;
         collateralManager = ENSCollateralManager(collateralManagerAddress);
         active = true;
         interestRatePerDay = 100;
@@ -116,8 +116,8 @@ contract ENSLoanManager is Ownable {
         @param _ensDomainName the name of the ENS domain as a plaintext
         @return true the loan was successfully created
     */
-    function createLoan(bytes32 _ensDomainName) returns (bool) {
-        bytes32 _ensDomainHash = sha(_ensDomainName);
+    function createLoan(bytes32 _ensDomainName, bytes32 _ensDomainHash) returns (bool) {
+        // bytes32 _ensDomainHash = sha3(_ensDomainName);
 
         var (_encumbered, _deedAddress, _registeredDate, _lockedAmount) = collateralManager.encumberCollateral(_ensDomainHash, msg.sender);
         assert(_encumbered);
@@ -129,13 +129,13 @@ contract ENSLoanManager is Ownable {
         loan.deedAddress = _deedAddress;
         loan.ensDomainName = _ensDomainName;
         loan.ensDomainHash = _ensDomainHash;
-        loan.amount = percentOf(_lockedAmount,lendableLevel);
+        loan.amount = percentOf(_lockedAmount, lendableLevel);
         // assert(this.value >= loan.amount);
         loan.expiresOn = now + maxLoanPeriodDays;
         loan.status = Status.ACTIVE;
         loan.interestRate = interestRatePerDay;
         loans[_deedAddress] = loan;
-        assert(msg.sender.send(loan.amount));
+        msg.sender.transfer(loan.amount);
         return true;
     }
 
@@ -236,7 +236,7 @@ contract ENSLoanManager is Ownable {
 
     /**
         @notice allows the current owner to change the daily interest rate.
-        @param _i integer value as the daily interest rate
+        @param _d integer value as the daily interest rate
         @return true an acknowledgement that the daily interest rate was set by the owner
     */
     function setMaxLoanPeriodDays(uint256 _d) onlyOwner returns (bool) {
@@ -256,7 +256,7 @@ contract ENSLoanManager is Ownable {
 
     /**
         @notice allows the current owner to change the lendableLevel.
-        @param _i integer value as the lendableLevel
+        @param _l integer value as the lendableLevel
         @return true an acknowledgement that the lendableLevel was set by the owner
     */
     function setLendableLevel(uint256 _l) onlyOwner returns (bool) {
