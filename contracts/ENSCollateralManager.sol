@@ -152,7 +152,6 @@ contract ENSCollateralManager is Ownable {
     */
     function forceUnencumberCollateral(address _deedAddress) onlyOwner returns (bool status) {
         encumbered[_deedAddress] = false;
-        CollateralUnencumbered(_ensDomainHash, owner);
         return true;
     }
 
