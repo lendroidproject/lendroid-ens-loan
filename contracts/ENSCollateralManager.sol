@@ -31,6 +31,11 @@ contract ENSCollateralManager is Ownable {
     address public ENSLoanManager;
     mapping(address=>bool) public encumbered;
 
+    event CollateralWithdrawn(bytes32 ensDomainHash, address toAddress);
+    event CollateralEncumbered(bytes32 ensDomainHash, address by);
+    event CollateralUnencumbered(bytes32 ensDomainHash, address by);
+
+
     /**
         @dev Throws if called by any account other than the LoanManager.
     */
@@ -80,6 +85,7 @@ contract ENSCollateralManager is Ownable {
         require(_deedContract.owner() == address(this));
         require(_deedContract.previousOwner() == _requester);
         encumbered[_deedAddress] = true;
+        CollateralEncumbered(_ensDomainHash, _requester);
         return (true, _deedAddress, _timestamp, _value);
     }
 
@@ -107,6 +113,7 @@ contract ENSCollateralManager is Ownable {
         require(_deedContract.owner() == address(this));
         require(_deedContract.previousOwner() == _requester);
         encumbered[_deedAddress] = false;
+        CollateralUnencumbered(_ensDomainHash, _requester);
         return true;
     }
 
@@ -134,6 +141,7 @@ contract ENSCollateralManager is Ownable {
         require(_currentDeedOwner == address(this));
         require(_previousDeedOwner == msg.sender);
         registrar.transfer(_ensDomainHash, msg.sender);
+        CollateralWithdrawn(_ensDomainHash, _previousDeedOwner);
         return true;
     }
 
@@ -144,6 +152,7 @@ contract ENSCollateralManager is Ownable {
     */
     function forceUnencumberCollateral(address _deedAddress) onlyOwner returns (bool status) {
         encumbered[_deedAddress] = false;
+        CollateralUnencumbered(_ensDomainHash, owner);
         return true;
     }
 
@@ -168,6 +177,7 @@ contract ENSCollateralManager is Ownable {
     */
     function escapeHatchClaimDeed(bytes32 _ensDomainHash) onlyOwner returns (bool) {
         registrar.transfer(_ensDomainHash, owner);
+        CollateralWithdrawn(_ensDomainHash, owner);
         return true;
     }
 

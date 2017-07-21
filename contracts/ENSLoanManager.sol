@@ -77,6 +77,9 @@ contract ENSLoanManager is Ownable {
 
     mapping (address => Loan) public loans;
 
+    event loanCreated(bytes32 ensDomainHash, address toAddress, uint256 loanAmount);
+    event loanClosed(bytes32 ensDomainHash, address by, uint256 repaymentAmount);
+
     function percentOf(uint256 _quantity, uint256 _percentage) internal returns (uint256){
         return _quantity.mul(_percentage).div(10 ** decimals);
     }
@@ -137,6 +140,7 @@ contract ENSLoanManager is Ownable {
         loan.interestRate = interestRatePerDay;
         loans[_deedAddress] = loan;
         msg.sender.transfer(loan.amount);
+        loanCreated(_ensDomainHash, loan.borrower, loan.amount);
         return true;
     }
 
@@ -167,6 +171,7 @@ contract ENSLoanManager is Ownable {
         activeLoan.amountPaid = msg.value;
         activeLoan.lastUpdated = now;
         assert(collateralManager.unencumberCollateral(activeLoan.ensDomainHash, msg.sender));
+        loanClosed(activeLoan.ensDomainHash,msg.sender,activeLoan.amountPaid);
         return true;
     }
 
