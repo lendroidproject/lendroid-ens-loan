@@ -56,6 +56,7 @@ contract ENSLoanManager is Ownable {
     address collateralManagerAddress;
 
     enum Status {
+        UNISSUED,
         ACTIVE,
         CLOSED,
         DEFAULTED
