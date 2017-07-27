@@ -95,7 +95,7 @@ contract ENSLoanManager is Ownable {
             - The lendable level
     */
     function ENSLoanManager() {
-        collateralManagerAddress = 0xE1f710CC425233320b04F74f231EfE77Fd162f55;
+        collateralManagerAddress = 0x3c1DFdF26EcEAE63417Fb878D809A276BB562566;
         collateralManager = ENSCollateralManager(collateralManagerAddress);
         active = true;
         interestRatePerDay = 100;

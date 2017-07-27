@@ -1,4 +1,25 @@
 
+
+
+
+function generate_ens_names(ens_name){
+  var list_of_generated_names = [];
+  for  (i = 1; i <= 2; i++)  {
+    list_of_generated_names.push(ens_name + i);
+  }
+  return list_of_generated_names;
+}
+
+
+function start_auction_for_names(list_of_names){
+
+  for (var i=0; i<list_of_names.length; i++) {
+    start_auction(list_of_names[i]);
+  }
+
+}
+
+
 function bid_for_names(list_of_names){
 
   for (var i=0; i<list_of_names.length; i++) {
@@ -35,12 +56,22 @@ function transfer_names(list_of_names,toAddress){
 }
 
 
-function bid_for_name(name) {
+function start_auction(name) {
 
   if (ethRegistrar.entries(web3.sha3(name))[0] == 0){
       console.log(ethRegistrar.startAuction(web3.sha3(name), {from: eth.accounts[0], gas: 100000}));
+  }
+  else{
+    console.log('Not available to buy');
+  }
+}
+
+
+function bid_for_name(name) {
+
+  if (ethRegistrar.entries(web3.sha3(name))[0] == 1){
     var bid = ethRegistrar.shaBid(web3.sha3(name), eth.accounts[0], web3.toWei(0.01, 'ether'), web3.sha3('secret'));
-    console.log(ethRegistrar.newBid(bid, {from: eth.accounts[0], value: web3.toWei(0.01, 'ether'), gas: 500000}));
+    console.log(ethRegistrar.newBid(bid, {from: eth.accounts[0], value: web3.toWei(0.01, 'ether'), gas: 1000000}));
   }
   else{
     console.log('Not available to buy');
