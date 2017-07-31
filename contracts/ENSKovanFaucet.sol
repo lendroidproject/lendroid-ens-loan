@@ -55,6 +55,8 @@ contract ENSKovanFaucet is Ownable {
     */
     function transferDomain() returns (bool) {
         Domain storage domain = domains[_unTransferredDomain()];
+        // Check that the domain has not been sent to the message sender yet
+        assert(domainOwners[msg.sender] != domain.ensDomainName);
         // Call ENS to transfer the ownership of the domain
         registrar.transfer(domain.ensDomainHash, msg.sender);
         // Update the domain data
