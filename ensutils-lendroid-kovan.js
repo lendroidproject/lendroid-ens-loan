@@ -9,6 +9,11 @@ function namehash(name) {
     return node.toString();
 }
 
+var ensFaucet = web3.eth.contract([{"constant":true,"inputs":[],"name":"registrar","outputs":[{"name":"","type":"address"}],"payable":false,"type":"function"},{"constant":true,"inputs":[],"name":"ens","outputs":[{"name":"","type":"address"}],"payable":false,"type":"function"},{"constant":false,"inputs":[],"name":"kill","outputs":[],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"ensDomainNames","type":"bytes32[]"},{"name":"ensDomainHashes","type":"bytes32[]"}],"name":"saveDomains","outputs":[{"name":"","type":"bool"}],"payable":false,"type":"function"},{"constant":false,"inputs":[],"name":"transferDomain","outputs":[{"name":"","type":"bool"}],"payable":false,"type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"type":"function"},{"constant":true,"inputs":[{"name":"","type":"bytes32"}],"name":"domains","outputs":[{"name":"ensDomainHash","type":"bytes32"},{"name":"ensDomainName","type":"bytes32"},{"name":"timestamp","type":"uint256"},{"name":"transferredTo","type":"address"},{"name":"status","type":"uint8"}],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"payable":false,"type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"domainOwners","outputs":[{"name":"","type":"bool"}],"payable":false,"type":"function"},{"inputs":[],"payable":false,"type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"ensDomainHash","type":"bytes32"},{"indexed":false,"name":"ensDomainName","type":"bytes32"},{"indexed":false,"name":"toAddress","type":"address"}],"name":"DomainTransferred","type":"event"}]);
+
+var ens_faucet = ensFaucet.at('0xc8c47121babb4a77ac37e913f1463a47369004f4');
+
+
 var ensContract = web3.eth.contract([
   {
     "constant": true,
