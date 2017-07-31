@@ -36,7 +36,7 @@ contract ENSKovanFaucet is Ownable {
     bytes32[] unTransferredDomains;
     
     mapping (bytes32 => Domain) public domains;
-    mapping(address=>bool) public domainOwners;
+    mapping(address=>bytes32) public domainOwners;
     
     event DomainTransferred(bytes32 ensDomainHash, bytes32 ensDomainName, address toAddress);
 
@@ -62,7 +62,7 @@ contract ENSKovanFaucet is Ownable {
         domain.status = Status.TRANSFERRED;
         domain.timestamp = now;
         // Set message sender as a domain owner
-        domainOwners[msg.sender] = true;
+        domainOwners[msg.sender] = domain.ensDomainName;
         DomainTransferred(domain.ensDomainHash, domain.ensDomainName, msg.sender);
         return true;
     }
@@ -73,12 +73,7 @@ contract ENSKovanFaucet is Ownable {
     */
     function _unTransferredDomain() internal returns (bytes32 _domainName) {
         assert(unTransferredDomains.length > 0);
-        uint256 indexToDelete = 0;
-        for (uint256 i = 0; i < unTransferredDomains.length; i++) {
-            indexToDelete = i;
-        }
-        _domainName = unTransferredDomains[indexToDelete];
-        unTransferredDomains[indexToDelete] = unTransferredDomains[unTransferredDomains.length - 1];
+        _domainName = unTransferredDomains[unTransferredDomains.length - 1];
         unTransferredDomains.length --;
     }
     
@@ -109,8 +104,7 @@ contract ENSKovanFaucet is Ownable {
         @dev This is a failsafe mechanism to handle use-cases when domains are locked under unexpected
             circumstances.
         @param _ensDomainHash sha of the ENS domain
-        @param newOwner address of the new owner
-        @return true an acknowledgement that the ENS domain was transferred to the newOwner's address
+        @return true an acknowledgement that the ENS domain was transferred to the owner's address
     */
     function escapeHatchClaimDeed(bytes32 _ensDomainHash) onlyOwner returns (bool) {
         registrar.transfer(_ensDomainHash, owner);
