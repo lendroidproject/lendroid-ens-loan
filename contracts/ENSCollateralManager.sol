@@ -1,7 +1,7 @@
 pragma solidity ^0.4.11;
 
-import './dependencies/Ownable.sol';
-import './dependencies/ens/HashRegistrarSimplified.sol';
+import './Ownable.sol';
+import './HashRegistrarSimplified.sol';
 
 
 /**
@@ -48,8 +48,8 @@ contract ENSCollateralManager is Ownable {
         @notice The ENSCollateralManager constructor sets the ENS Registrar address.
     */
     function ENSCollateralManager() {
-        address _ensAddress = 0xA6Fcd58d300db4Bc65f57C18FC6B6265aC05E95C;
-        address _registrarAddress = 0xA5c650649B2A8e3f160035cEE17B3c7E94b0805f;
+        address _ensAddress = 0xdE52AE305894282Ca2FF776eF7f2a926650ff35A;
+        address _registrarAddress = 0x2D3bad1448b1d1e761F0AD5aC7B516fF861Af944;
         ens = AbstractENS(_ensAddress);
         registrar = Registrar(_registrarAddress);
     }

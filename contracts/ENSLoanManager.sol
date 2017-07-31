@@ -1,8 +1,8 @@
 pragma solidity ^0.4.2;
 
 import './ENSCollateralManager.sol';
-import './dependencies/SafeMath.sol';
-import './dependencies/Ownable.sol';
+import './SafeMath.sol';
+import './Ownable.sol';
 
 
 /**
@@ -95,7 +95,7 @@ contract ENSLoanManager is Ownable {
             - The lendable level
     */
     function ENSLoanManager() {
-        collateralManagerAddress = 0xE1f710CC425233320b04F74f231EfE77Fd162f55;
+        collateralManagerAddress = 0xB6BFE80Bc8E835C078F8e9fC8cb5212E70108E75;
         collateralManager = ENSCollateralManager(collateralManagerAddress);
         active = true;
         interestRatePerDay = 100;
@@ -218,6 +218,7 @@ contract ENSLoanManager is Ownable {
     */
     function setCollateralManagerAddress(address _a) onlyOwner returns (bool) {
         collateralManagerAddress = _a;
+        collateralManager = ENSCollateralManager(collateralManagerAddress);
         return true;
     }
 
