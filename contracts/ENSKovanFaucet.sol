@@ -1,7 +1,7 @@
 pragma solidity ^0.4.11;
 
-import './Ownable.sol';
-import './HashRegistrarSimplified.sol';
+import './dependencies/Ownable.sol';
+import './dependencies/ens/HashRegistrarSimplified.sol';
 
 
 /**
