@@ -1,8 +1,8 @@
 pragma solidity ^0.4.2;
 
 import './ENSCollateralManager.sol';
-import './SafeMath.sol';
-import './Ownable.sol';
+import './dependencies/SafeMath.sol';
+import './dependencies/Ownable.sol';
 
 
 /**
